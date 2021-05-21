@@ -5,10 +5,10 @@ import jwt from "jsonwebtoken";
 import OAuthGoogle from "../utils/OAuth/Google";
 
 const client = new Client({
-  user: "postgres",
-  host: "localhost",
-  database: "auth",
-  password: "haris267",
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASS,
   port: 5432,
 });
 
