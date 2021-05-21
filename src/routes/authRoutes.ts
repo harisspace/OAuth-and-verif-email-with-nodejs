@@ -5,11 +5,11 @@ import jwt from "jsonwebtoken";
 import OAuthGoogle from "../utils/OAuth/Google";
 
 const client = new Client({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASS,
-  port: parseInt(process.env.DB_PORT!),
+  user: "postgres",
+  host: "localhost",
+  database: "auth",
+  password: "haris267",
+  port: 5432,
 });
 
 const router = Router();
@@ -75,7 +75,6 @@ router.post(
 
     // create token
     const token = jwt.sign(username, "secret");
-    console.log(token);
 
     // send email
     const transporter = nodemailer.createTransport({
@@ -97,13 +96,38 @@ router.post(
     try {
       const data = await client.query(queryInsert, value);
       client.end();
-      console.log(data);
-      if (data) {
+      if (data.rows && data.rows[0]) {
         return res.json({ username, email, password });
       }
     } catch (err) {
       return next(err);
     }
+  }
+);
+
+// router confirmation
+router.get(
+  "/confirmation/:token",
+  (req: Request, res: Response, next: NextFunction) => {
+    const token = req.params.token;
+    console.log(token);
+    const username = jwt.verify(token, "secret");
+    console.log(username);
+    if (!username) {
+      res.status(401).json({ error: "invalid token" });
+    }
+
+    try {
+      client.connect();
+      const query = "UPDATE users SET isconfirmed = $1 WHERE username = $2";
+      const value = [true, username];
+      const result = client.query(query, value);
+      console.log(result);
+    } catch (err) {
+      next(err);
+    }
+
+    res.send("confirm");
   }
 );
 
